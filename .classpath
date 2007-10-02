@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/spring-1.2.8.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.13.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/xsdlib-20060615.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/relaxngDatatype-20020414.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jax-qname-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jaxb-xjc-1.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jaxb-libs-1.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jaxb-impl-1.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jaxbcommons-core-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/jaxb/jaxb-api-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/ehcache-1.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/xweb-jaxb.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/json.jar"/>
+	<classpathentry kind="lib" path="lib/j2ee/servlet-api.jar"/>
+	<classpathentry kind="output" path="build/eclipse"/>
+</classpath>
