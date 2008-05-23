@@ -83,6 +83,7 @@
 		<xs:sequence>
 			<xs:any processContents="lax" maxOccurs="unbounded"/>
 		</xs:sequence>
+		<xs:attribute name="session-id" type="xs:string"/>
 	</xs:complexType>
 	
 	<xs:complexType name="xweb-auxillary">

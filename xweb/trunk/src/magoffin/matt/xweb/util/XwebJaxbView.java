@@ -783,6 +783,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	protected void processSession(HttpServletRequest request, XData xData) throws JAXBException {
 		if (request.getSession(false) != null) {
 			XwebSession xSession = objectFactory.createXwebSession();
+			xSession.setSessionId(request.getSession().getId());
 			xData.setXSession(xSession);
 			HttpSession session = request.getSession();
 			for (Enumeration enumeration = session.getAttributeNames(); enumeration
