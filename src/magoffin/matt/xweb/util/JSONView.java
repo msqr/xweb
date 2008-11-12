@@ -51,7 +51,7 @@ import org.springframework.web.servlet.view.AbstractView;
  * <p>The view model is turned into a complete JSON object. The model keys become
  * JSON object keys, and the model values the corresponding JSON object values. 
  * Array and Collection object values will be rendered as JSON array values. 
- * Primiative types will render as JSOM primitive values (numbers, strings). 
+ * Primiative types will render as JSON primitive values (numbers, strings). 
  * Objects will be treated as JavaBeans and the bean properties will be used 
  * to render nested JSON objects.</p>
  * 
