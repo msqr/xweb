@@ -226,7 +226,6 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
-	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(webHelper, "The webHelper property is required.");
 		synchronized ( JAXBCONTEXT_CACHE ) {
@@ -300,7 +299,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 *             been initialized already (via the {@link #init()} method)
 	 */
 	private JAXBContext getContext() {
-		JAXBContext context = (JAXBContext) JAXBCONTEXT_CACHE.get(this.jaxbContext);
+		JAXBContext context = JAXBCONTEXT_CACHE.get(this.jaxbContext);
 		if (context == null) {
 			throw new RuntimeException("JAXBContext for [" + jaxbContext
 					+ "] not defined.");
@@ -439,11 +438,8 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @throws JAXBException if a JAXB error occurs
 	 */
 	@SuppressWarnings("unchecked")
-	protected void processMessages(@SuppressWarnings("unused")
-	HttpServletRequest request, XData xData, Map model,
-			@SuppressWarnings("unused")
-			String rootName, @SuppressWarnings("unused")
-			String modelKey, Locale locale) throws JAXBException {
+	protected void processMessages(HttpServletRequest request, XData xData, Map model,
+			String rootName, String modelKey, Locale locale) throws JAXBException {
 		
 		Object alert = model.get(XwebConstants.ALERT_MESSAGES_OBJECT);
 		if ( alert == null ) {
@@ -618,12 +614,12 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 			throws JAXBException {
 		String key = locale.toString();
 		if (msgMap.containsKey(key)) {
-			return (XwebMessages) msgMap.get(key);
+			return msgMap.get(key);
 		}
 
 		synchronized (msgMap) {
 			if (msgMap.containsKey(key)) {
-				return (XwebMessages) msgMap.get(key);
+				return msgMap.get(key);
 			}
 
 			XwebMessages xMsgs = objectFactory.createXwebMessages();
@@ -636,7 +632,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 
 			Enumeration<String> enumeration = msgSrc.getKeys(locale);
 			while (enumeration.hasMoreElements()) {
-				String msgKey = (String) enumeration.nextElement();
+				String msgKey = enumeration.nextElement();
 				XwebMessage xMsg = objectFactory.createXwebMessage();
 				xMsgs.getMsg().add(xMsg);
 				xMsg.setKey(msgKey);

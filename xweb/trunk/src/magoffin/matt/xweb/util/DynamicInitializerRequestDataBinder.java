@@ -175,7 +175,7 @@ implements ServletRequestDataBinderTemplate {
 		iMapping.putAll(m);
 		Map<String, Pattern> pMap = new LinkedHashMap<String, Pattern>(m.size()*2);
 		for ( Iterator<String> itr = iMapping.keySet().iterator(); itr.hasNext(); ) {
-			String propName = (String)itr.next();
+			String propName = itr.next();
 			String regexPat = "^(" +propName +")" +"\\[(\\d+)\\].*";
 			Pattern pat = Pattern.compile(regexPat);
 			pMap.put(propName,pat);
