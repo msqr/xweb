@@ -28,6 +28,7 @@ package magoffin.matt.xweb.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -132,7 +133,8 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	 * @see magoffin.matt.xweb.util.XwebParamDao#removeParameter(java.lang.String)
 	 */
 	public void removeParameter(String key) {
-		jdbcTemplate.update(deleteByKeySql, new Object[] {keyPrefix+key});
+		jdbcTemplate.update(deleteByKeySql, new Object[] {keyPrefix+key},
+				new int[] {Types.VARCHAR});
 	}
 
 	/* (non-Javadoc)
@@ -143,12 +145,14 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 		XwebParameter storedParam = getParameter(parameter.getKey());
 		if ( storedParam != null ) {
 			jdbcTemplate.update(updateByKeySql, new Object[] {
-					parameter.getValue(), keyPrefix+storedParam.getKey()});
+					parameter.getValue(), keyPrefix+storedParam.getKey()},
+					new int[] {Types.VARCHAR, Types.VARCHAR});
 			storedParam.setValue(parameter.getValue());
 			return storedParam;
 		}
 		jdbcTemplate.update(insertSql, new Object[] {
-				keyPrefix+parameter.getKey(), parameter.getValue()});
+				keyPrefix+parameter.getKey(), parameter.getValue()},
+				new int[] {Types.VARCHAR, Types.VARCHAR});
 		return parameter;
 	}
 	
