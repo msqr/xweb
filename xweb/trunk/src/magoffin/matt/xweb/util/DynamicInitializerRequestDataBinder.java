@@ -200,7 +200,7 @@ implements ServletRequestDataBinderTemplate {
 	 * 
 	 * @param request the request to inspect
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void inspectCollectionProperties(ServletRequest request) {
 		Map<String, String> requestMap = request.getParameterMap();
 		// need to first clear out any mapped list objects

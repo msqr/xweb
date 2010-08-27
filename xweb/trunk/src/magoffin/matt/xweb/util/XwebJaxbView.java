@@ -383,7 +383,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @param xData the current XData
 	 * @throws JAXBException  if a JAXB error occurs
 	 */
-	@SuppressWarnings( { "unchecked" })
+	@SuppressWarnings( { "unchecked", "rawtypes" })
 	protected void processRequestData(HttpServletRequest request, XData xData)
 			throws JAXBException {
 		// set up request (required)
@@ -437,7 +437,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @param locale the current locale
 	 * @throws JAXBException if a JAXB error occurs
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void processMessages(HttpServletRequest request, XData xData, Map model,
 			String rootName, String modelKey, Locale locale) throws JAXBException {
 		
@@ -495,7 +495,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @param locale the current locale
 	 * @throws JAXBException if a JAXB error occurs
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void processErrors(HttpServletRequest request, XData xData,
 			Map model, String rootName, String modelKey, Locale locale)
 			throws JAXBException {
@@ -697,7 +697,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @return the XData
 	 * @throws Exception if an error occurs
 	 */
-	@SuppressWarnings( { "unchecked" })
+	@SuppressWarnings( { "unchecked", "rawtypes" })
 	protected XData buildXweb(Map model, String rootName,
 			HttpServletRequest request) throws Exception {
 		// create Xweb data container now
@@ -775,7 +775,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @param xData the XData
 	 * @throws JAXBException if an error occurs
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void processSession(HttpServletRequest request, XData xData) throws JAXBException {
 		if (request.getSession(false) != null) {
 			XwebSession xSession = objectFactory.createXwebSession();
@@ -810,7 +810,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * @param modelKey the model key
 	 * @throws JAXBException if an error occurs
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void processNonModelObjects(XData xData, Map model, String modelKey) 
 	throws JAXBException {
 		if (model.size() > 2) {
@@ -864,7 +864,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected Source createXsltSource(Map model, String root,
 			HttpServletRequest request, HttpServletResponse response)
@@ -914,7 +914,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected void doTransform(Map model, Source source, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		// check for ;xml=true flag

@@ -149,10 +149,10 @@ public class RedirectView extends AbstractUrlBasedView {
 	 * Convert model to request parameters and redirect to the given URL.
 	 * @see #sendRedirect
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	protected final void renderMergedOutputModel(
-			Map model, HttpServletRequest request, HttpServletResponse response) throws IOException {
+			@SuppressWarnings("rawtypes") Map model, HttpServletRequest request, 
+			HttpServletResponse response) throws IOException {
 
 		// Prepare target URL.
 		StringBuilder targetUrl = new StringBuilder();

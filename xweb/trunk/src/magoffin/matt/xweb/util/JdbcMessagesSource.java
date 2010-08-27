@@ -135,9 +135,9 @@ implements MessagesSource, InitializingBean {
 	}
 
 	/* (non-Javadoc)
-	 * @see magoffin.matt.ieat.util.MessagesSource#getKeys(java.util.Locale)
+	 * @see magoffin.matt.xweb.util.MessagesSource#getKeys(java.util.Locale)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Enumeration getKeys(Locale locale) {
 		final Set data = new LinkedHashSet();
 		Map<String, String> jdbcMap = getMessageMap(locale);
