@@ -48,7 +48,7 @@ public class XwebServiceView extends XwebJaxbView {
 	private boolean includeXwebSession = false;
 	
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected XData buildXweb(Map model, String rootName,
 			HttpServletRequest request) throws Exception {
