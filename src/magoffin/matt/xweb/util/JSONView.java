@@ -108,7 +108,7 @@ public class JSONView extends AbstractView {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void render(Map model, HttpServletRequest request, 
+	public void render(@SuppressWarnings("rawtypes") Map model, HttpServletRequest request, 
 			HttpServletResponse response) throws Exception {
 		// This is a copy of AbstractView#render except a LinkedHashMap is used to 
 		// preserve key ordering.
@@ -137,7 +137,8 @@ public class JSONView extends AbstractView {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void renderMergedOutputModel(Map model, HttpServletRequest request,
+	protected void renderMergedOutputModel(@SuppressWarnings("rawtypes") Map model, 
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
 		JSONObject json = new JSONObject();

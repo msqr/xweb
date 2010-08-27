@@ -88,7 +88,7 @@ public class BasicNamespaceContext implements NamespaceContext {
 	/* (non-Javadoc)
 	 * @see javax.xml.namespace.NamespaceContext#getPrefixes(java.lang.String)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Iterator getPrefixes(String namespaceURI) {
 		return namespacePrefixMap.keySet().iterator();
 	}
