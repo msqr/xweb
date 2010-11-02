@@ -215,7 +215,7 @@ implements ServletRequestDataBinderTemplate {
 					String objPropName = matcher.group(1);
 					String collectionIdx = matcher.group(2);
 					List<Object> l = (List<Object>)
-						getBeanWrapper().getPropertyValue(objPropName);
+						getPropertyAccessor().getPropertyValue(objPropName);
 					
 					// clear out list first time around, which lets us eliminate items 
 					// from session form
@@ -229,22 +229,21 @@ implements ServletRequestDataBinderTemplate {
 						DynamicInitializer initializer = initializerMapping.get(propName);
 						try {
 							for ( int i = l.size(); i <= idx; i++ ) {
-								l.add(initializer.newInstance(getBeanWrapper()
-										.getWrappedInstance(),objPropName));
+								l.add(initializer.newInstance(getTarget(),objPropName));
 							}
 						} catch ( Exception e ) {
 							throw new RuntimeException("Unable to instantiate list object "
 									+"for property " +propName +" on bean "
-									+getBeanWrapper().getWrappedInstance().getClass());
+									+getTarget().getClass());
 						}
 					}
 				} else if ( param.startsWith(propName) ) {
-					Object o = getBeanWrapper().getPropertyValue(propName);
+					Object o = getPropertyAccessor().getPropertyValue(propName);
 					if ( o == null ) {
 						DynamicInitializer initializer = initializerMapping.get(propName);
 						Object newObj = initializer.newInstance(
-								getBeanWrapper().getWrappedInstance(),propName);
-						getBeanWrapper().setPropertyValue(propName,newObj);
+								getTarget(),propName);
+						getPropertyAccessor().setPropertyValue(propName,newObj);
 					}
 				}
 			}

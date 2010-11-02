@@ -147,6 +147,7 @@ import org.w3c.dom.Document;
  * @author Matt Magoffin (spamsqr@msqr.us)
  * @version $Revision: 1.8 $ $Date: 2007/10/02 09:03:52 $
  */
+@SuppressWarnings("deprecation")
 public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 
 	/**
@@ -934,6 +935,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		super.doTransform(model, source, request, response);
 	}
 
+	@Override
+	protected TransformerFactory newTransformerFactory(@SuppressWarnings("rawtypes") Class clazz) {
+		if ( this.transformerFactory != null ) {
+			return this.transformerFactory;
+		}
+		return super.newTransformerFactory(clazz);
+	}
+
 	/**
 	 * @return Returns the appSettingsCache.
 	 */
@@ -1053,13 +1062,6 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 */
 	public void setWebHelper(XwebHelper webHelper) {
 		this.webHelper = webHelper;
-	}
-	
-	/**
-	 * @return the transformerFactory
-	 */
-	public TransformerFactory getTransformerFactory() {
-		return transformerFactory;
 	}
 	
 	/**
