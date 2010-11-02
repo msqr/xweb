@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+	targetNamespace="http://msqr.us/xsd/jaxb-web"
+	xml:lang="EN"
+	jaxb:extensionBindingPrefixes="xjc"
+	jaxb:version="1.0"
+	xmlns:xweb="http://msqr.us/xsd/jaxb-web"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified">
+	
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:globalBindings>
+				<xjc:serializable uid="200612031"/>
+			</jaxb:globalBindings>
+			<jaxb:schemaBindings>
+				<jaxb:package name="magoffin.matt.xweb"/>
+			</jaxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+	
+	<xs:element name="x-app-context" type="xweb:xweb-parameters"/>
+	<xs:element name="x-data" type="xweb:xweb"/>
+	<xs:element name="x-param" type="xweb:xweb-parameter"/>
+	<xs:element name="x-messages" type="xweb:xweb-messages"/>
+	
+	<xs:complexType name="xweb">
+		<xs:sequence>
+			<xs:element name="x-context" type="xweb:xweb-context"/>
+			<xs:element name="x-auxillary" type="xweb:xweb-auxillary"
+				minOccurs="0"/>
+			<xs:element name="x-messages" type="xweb:xweb-messages"
+				minOccurs="0"/>
+			<xs:element name="x-errors" type="xweb:xweb-errors"
+				minOccurs="0"/>
+			<xs:element name="x-session" type="xweb:xweb-session"
+				minOccurs="0"/>
+			<xs:element name="x-msg" type="xweb:xweb-messages" 
+				minOccurs="0"/>
+			<xs:element name="x-request" type="xweb:xweb-parameters"/>
+			<xs:element name="x-request-headers" type="xweb:xweb-parameters"/>
+			<xs:element name="x-model" type="xweb:xweb-model"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-model">
+		<xs:sequence>
+			<xs:any processContents="lax"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-context">
+		<xs:sequence>
+			<xs:element name="server-name" type="xs:string"/>
+			<xs:element name="server-port" type="xs:int"/>
+			<xs:element name="user-agent" type="xs:string"/>
+			<xs:element name="user-locale" type="xs:string"/>
+			<xs:element name="web-context" type="xs:string"/>
+			<xs:element name="path" type="xs:string"/>
+			<xs:element name="settings" type="xweb:xweb-parameters" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-errors">
+		<xs:sequence>
+			<xs:element name="error" type="xweb:xweb-error" 
+				minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-error">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="field" type="xs:string" use="optional"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-session">
+		<xs:sequence>
+			<xs:any processContents="lax" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="session-id" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-auxillary">
+		<xs:sequence>
+			<xs:any processContents="lax" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-messages">
+		<xs:sequence>
+			<xs:element name="msg" type="xweb:xweb-message" 
+				minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-message">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="key" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="xweb-parameters">
+		<xs:sequence>
+			<xs:element name="param" type="xweb:xweb-parameter" 
+				minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="xweb-parameter">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="key" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2006 Matt Magoffin
+  
+  This program is free software; you can redistribute it and/or 
+  modify it under the terms of the GNU General Public License as 
+  published by the Free Software Foundation; either version 2 of 
+  the License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful, 
+  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+  General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License 
+  along with this program; if not, write to the Free Software 
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
+  02111-1307 USA
+
+  $Id: build.xml,v 1.5 2007/10/02 09:03:52 matt Exp $   
+-->
+<project name="XWeb" default="dist">
+
+	<property file="build.properties" />
+
+	<property name="dir.base" value="."/>
+	<property name="dir.source" value="src"/>
+	<property name="dir.schema" value="defs/schema"/>
+	<property name="dir.build" value="build/ant" />
+	<property name="dir.generated" value="${dir.build}/generated" />
+	<property name="dir.compile" value="${dir.build}/classes"/>
+	<property name="dir.dist" value="dist"/>
+	<property name="dir.lib" value="lib"/>
+	
+	<property name="app.name" value="xweb" />
+	
+	<property name="dir.app.dest" value="${dir.build}/${app.name}"/>
+	<property name="compile.debug" value="true" />
+	<property name="compile.deprecation" value="false" />
+	<property name="compile.optimize" value="true" />
+	<property name="compile.nowarn" value="true" />
+	
+	<property name="jaxb.version" value="1.4"/>
+	
+	<property name="build.version" value="(local build)"/>
+	
+	<tstamp>
+		<format property="build.time" pattern="MM/dd/yyyy hh:mm aa z" />
+	</tstamp>
+	
+	<path id="jaxb.generate.path">
+		<fileset dir="${dir.lib}" includes="**/*.jar"/>
+	</path>
+	
+	<path id="compile.path">
+		<pathelement location="${dir.compile}"/>
+		<fileset dir="${dir.lib}" includes="**/*.jar"/>
+	</path>
+	
+	<target name="init">
+		<mkdir dir="${dir.build}" />
+		<mkdir dir="${dir.generated}" />
+	</target>
+	
+	<target name="generate.xweb" depends="init" 
+		description="Generate JAXB Xweb objects from XML schema">
+		<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"
+			classpathref="jaxb.generate.path"/>
+		<delete>
+			<fileset dir="${dir.generated}">
+				<include name="magoffin/matt/xweb/*.java"/>
+				<include name="magoffin/matt/xweb/impl/**/*.java"/>
+			</fileset>
+		</delete>
+		<xjc target="${dir.generated}" removeoldoutput="yes">
+			<schema  dir="${dir.schema}" includes="jaxb-web.xsd"/>
+			<arg line="-nv -extension"/>
+			<produces dir="${dir.generated}/magoffin/matt/xweb" 
+				includes="*/.java impl/**/*.java"/>
+		</xjc>
+	</target>
+	
+	<target name="compile" description="Compile source files">
+		<mkdir dir="${dir.compile}"/>
+		<javac srcdir="${dir.source}"
+			destdir="${dir.compile}"
+			debug="${compile.debug}" 
+			deprecation="${compile.deprecation}" 
+			optimize="${compile.optimize}" 
+			nowarn="${compile.nowarn}"
+			target="1.5"
+			source="1.5">
+			<classpath refid="compile.path" />
+		</javac>
+	</target>
+	
+	<target name="clean" description="Delete build files">
+		<delete dir="${dir.build}" />
+		<delete dir="${dir.generated}" />
+	</target>
+	
+	<target name="compile.xweb">
+		<mkdir dir="${dir.compile}"/>
+		<delete>
+			<fileset dir="${dir.compile}">
+				<include name="magoffin/matt/xweb/**"/>
+				<exclude name="magoffin/matt/xweb/util/**"/>
+			</fileset>
+		</delete>
+		<javac srcdir="${dir.generated}"
+			destdir="${dir.compile}"
+			debug="${compile.debug}" 
+			deprecation="${compile.deprecation}" 
+			optimize="${compile.optimize}" 
+			nowarn="${compile.nowarn}"
+			target="1.5"
+			source="1.5">
+			<classpath refid="compile.path" />
+		</javac>
+	</target>
+	
+	<target name="xweb-jaxb-jar" description="Generate a JAXB only XWeb JAR"
+		depends="generate.xweb,compile.xweb,compile">
+		<mkdir dir="${dir.dist}"/>
+		<jar destfile="${dir.lib}/xweb-jaxb.jar">
+			<fileset dir="${dir.compile}">
+				<include name="magoffin/matt/xweb/**"/>
+				<exclude name="magoffin/matt/xweb/util/**"/>
+			</fileset>
+			<fileset dir="${dir.source}">
+				<include name="magoffin/matt/xweb/**"/>
+				<exclude name="magoffin/matt/xweb/util/**"/>
+			</fileset>
+			<fileset dir="${dir.generated}">
+				<include name="magoffin/matt/xweb/**"/>
+				<exclude name="magoffin/matt/xweb/util/**"/>
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dist-xweb-jar" description="Generate a distribution XWeb JAR"
+		depends="generate.xweb,compile.xweb,compile">
+		<mkdir dir="${dir.dist}"/>
+		<jar destfile="${dir.dist}/xweb.jar">
+			<fileset dir="${dir.compile}">
+				<include name="magoffin/matt/xweb/**"/>
+			</fileset>
+			<fileset dir="${dir.source}">
+				<include name="magoffin/matt/xweb/**"/>
+			</fileset>
+			<fileset dir="${dir.generated}">
+				<include name="magoffin/matt/xweb/**"/>
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dist" description="Prepare the distribution JAR"
+		depends="dist-xweb-jar"/>
+
+	<target name="help">
+		<echo>TODO</echo>
+	</target>
+	
+</project>
