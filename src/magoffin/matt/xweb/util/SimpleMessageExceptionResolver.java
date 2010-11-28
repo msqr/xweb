@@ -91,7 +91,7 @@ public class SimpleMessageExceptionResolver implements HandlerExceptionResolver,
 			if ( saveRequestUrl ) {
 				xwebHelper.saveRequestURL(request);
 			}
-			ObjectError error = new ObjectError(null,
+			ObjectError error = new ObjectError(ex.getClass().getSimpleName(),
 					new String[] {errorMessageKey},null,defaultErrorMessage);
 			xwebHelper.saveMessage(request, error);
 			return new ModelAndView(redirectView);
