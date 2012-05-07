@@ -33,6 +33,7 @@ import java.util.List;
 import magoffin.matt.xweb.ObjectFactory;
 import magoffin.matt.xweb.XwebParameter;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -55,7 +56,9 @@ import org.springframework.util.StringUtils;
 @Repository
 public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	
+	@Autowired
 	private JdbcTemplate jdbcTemplate;
+
 	private String keyColumnName = "skey";
 	private String valueColumnName = "svalue";
 	private String tableName = "settings";
