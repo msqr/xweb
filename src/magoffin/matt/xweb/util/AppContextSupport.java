@@ -30,9 +30,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import magoffin.matt.xweb.XAppContext;
 import magoffin.matt.xweb.XwebParameter;
+import magoffin.matt.xweb.XwebParameters;
 
 /**
  * Class to support the AppContext configuration.
@@ -47,9 +46,9 @@ import magoffin.matt.xweb.XwebParameter;
 
 public class AppContextSupport implements Serializable {
 
-	private static final long serialVersionUID = 4050197523060766258L;
+	private static final long serialVersionUID = 8988748274955015805L;
 
-	private XAppContext appContext;
+	private XwebParameters appContext;
 	private Map<String,String> attributes;
 	
 	/**
@@ -58,7 +57,7 @@ public class AppContextSupport implements Serializable {
 	 * 
 	 * @param appContext the AppContext to initialize with
 	 */
-	public AppContextSupport(XAppContext appContext) {
+	public AppContextSupport(XwebParameters appContext) {
 		setAppContext(appContext);
 	}
 	
@@ -111,14 +110,14 @@ public class AppContextSupport implements Serializable {
 	/**
 	 * @return Returns the appContext.
 	 */
-	public XAppContext getAppContext() {
+	public XwebParameters getAppContext() {
 		return appContext;
 	}
 
 	/**
 	 * @param appContext The appContext to set.
 	 */
-	public void setAppContext(XAppContext appContext) {
+	public void setAppContext(XwebParameters appContext) {
 		this.appContext = appContext;
 		init();
 	}

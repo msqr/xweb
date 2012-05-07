@@ -27,10 +27,8 @@
 package magoffin.matt.xweb.util;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.log4j.Logger;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
@@ -74,9 +72,7 @@ public class HttpStatusExceptionResolver implements HandlerExceptionResolver,
 	
 	private final Logger log = Logger.getLogger(getClass());
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.HandlerExceptionResolver#resolveException(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, java.lang.Exception)
-	 */
+	@Override
 	public ModelAndView resolveException(HttpServletRequest request,
 			HttpServletResponse response, Object handler, Exception ex) {
 		if ( exceptionClass.isAssignableFrom(ex.getClass()) ) {
@@ -94,9 +90,7 @@ public class HttpStatusExceptionResolver implements HandlerExceptionResolver,
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.core.Ordered#getOrder()
-	 */
+	@Override
 	public int getOrder() {
 		return order;
 	}

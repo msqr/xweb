@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 
@@ -63,9 +62,7 @@ public class BasicNamespaceContext implements NamespaceContext {
 		this.reverseMap = rMap;
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.xml.namespace.NamespaceContext#getNamespaceURI(java.lang.String)
-	 */
+	@Override
 	public String getNamespaceURI(String prefix) {
 		if ( prefix.equals(XMLConstants.XML_NS_PREFIX) ) {
             return XMLConstants.XML_NS_URI;
@@ -78,16 +75,12 @@ public class BasicNamespaceContext implements NamespaceContext {
 		return XMLConstants.NULL_NS_URI;
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.xml.namespace.NamespaceContext#getPrefix(java.lang.String)
-	 */
+	@Override
 	public String getPrefix(String namespaceURI) {
 		return reverseMap.get(namespaceURI);
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.xml.namespace.NamespaceContext#getPrefixes(java.lang.String)
-	 */
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Iterator getPrefixes(String namespaceURI) {
 		return namespacePrefixMap.keySet().iterator();

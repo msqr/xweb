@@ -28,7 +28,6 @@ package magoffin.matt.xweb.util;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.core.Ordered;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -82,9 +81,7 @@ public class SimpleMessageExceptionResolver implements HandlerExceptionResolver,
 	private int order = 0;
 	private XwebHelper xwebHelper;
 	
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.HandlerExceptionResolver#resolveException(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, java.lang.Exception)
-	 */
+	@Override
 	public ModelAndView resolveException(HttpServletRequest request,
 			HttpServletResponse response, Object handler, Exception ex) {
 		if ( exceptionClass.isAssignableFrom(ex.getClass()) ) {
@@ -99,9 +96,7 @@ public class SimpleMessageExceptionResolver implements HandlerExceptionResolver,
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.core.Ordered#getOrder()
-	 */
+	@Override
 	public int getOrder() {
 		return order;
 	}

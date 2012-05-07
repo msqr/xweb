@@ -37,9 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import magoffin.matt.xweb.util.MessagesSource;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.AbstractMessageSource;
@@ -72,6 +69,7 @@ implements MessagesSource, InitializingBean {
 	private Map<String, Map<String, String>> jdbcCache 
 		= new HashMap<String, Map<String,String>>();
 	
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		if ( !StringUtils.hasText(getAllSql) ) {
 			getAllSql = "select " +keyColumnName +", " +valueColumnName
@@ -101,9 +99,7 @@ implements MessagesSource, InitializingBean {
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.MessagesSource#registerMessageResource(java.lang.String)
-	 */
+	@Override
 	public void registerMessageResource(String resource) {
 		throw new UnsupportedOperationException();
 	}
@@ -115,6 +111,7 @@ implements MessagesSource, InitializingBean {
 		final Map<String, String> data = new LinkedHashMap<String, String>();
 		final String prefix = keyPrefix +locale.getLanguage() +':';
 		jdbcTemplate.query(getAllSql,new RowCallbackHandler() {
+			@Override
 			public void processRow(ResultSet rs) throws SQLException {
 				String key = rs.getString(keyColumnName);
 				String value = rs.getString(valueColumnName);
@@ -137,6 +134,7 @@ implements MessagesSource, InitializingBean {
 	/* (non-Javadoc)
 	 * @see magoffin.matt.xweb.util.MessagesSource#getKeys(java.util.Locale)
 	 */
+	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Enumeration getKeys(Locale locale) {
 		final Set data = new LinkedHashSet();

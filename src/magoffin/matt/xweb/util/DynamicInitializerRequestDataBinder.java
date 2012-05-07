@@ -35,9 +35,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.ServletRequest;
-
 import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.ServletRequestDataBinder;
 
@@ -94,6 +92,7 @@ implements ServletRequestDataBinderTemplate {
 	 */
 	private static class SortBySteps implements Comparator<String> {
 
+		@Override
 		public int compare(String s1, String s2) {
 			int steps1 = getNumSteps(s1);
 			int steps2 = getNumSteps(s2);

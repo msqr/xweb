@@ -27,8 +27,7 @@
 package magoffin.matt.xweb.util;
 
 import javax.servlet.http.HttpServletRequest;
-
-import magoffin.matt.xweb.XData;
+import magoffin.matt.xweb.Xweb;
 
 /**
  * API for allowing for XWeb XData post processing.
@@ -61,6 +60,6 @@ public interface XDataPostProcessor {
 	 * @param xData the xData to process
 	 * @param request the current request
 	 */
-	void process(XData xData, HttpServletRequest request);
+	void process(Xweb xData, HttpServletRequest request);
 	
 }

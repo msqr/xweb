@@ -28,12 +28,8 @@ package magoffin.matt.xweb.util;
 
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
-import magoffin.matt.xweb.XData;
-import magoffin.matt.xweb.impl.XDataImpl;
-
+import magoffin.matt.xweb.Xweb;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
@@ -50,10 +46,10 @@ public class XwebServiceView extends XwebJaxbView {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected XData buildXweb(Map model, String rootName,
+	protected Xweb buildXweb(Map model, String rootName,
 			HttpServletRequest request) throws Exception {
 		// create Xweb data container now
-		XData xData = new XDataImpl();
+		Xweb xData = new Xweb();
 		
 		String modelKey = model.containsKey(XwebConstants.DEFALUT_MODEL_OBJECT) 
 			? XwebConstants.DEFALUT_MODEL_OBJECT 
@@ -78,7 +74,7 @@ public class XwebServiceView extends XwebJaxbView {
 			processMessagesSource(xData, requestLocale);
 		}
 
-		debugXData(xData);
+		debugXweb(xData);
 		
 	    return xData;
 	}

@@ -28,17 +28,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
-
 import magoffin.matt.xweb.ObjectFactory;
-import magoffin.matt.xweb.XMessages;
 import magoffin.matt.xweb.XwebMessage;
+import magoffin.matt.xweb.XwebMessages;
 
 /**
  * URIResolver that can resolve a special xweb:messages URI.
@@ -53,7 +51,7 @@ public class XwebMessagesURIResolver implements URIResolver {
 	
 	private MessagesSource messagesSource;
 	private ObjectFactory objectFactory = new ObjectFactory();
-	private Map<String, XMessages> cache = new HashMap<String, XMessages>();
+	private final Map<String, XwebMessages> cache = new HashMap<String, XwebMessages>();
 	private JAXBContext context;
 	
 	/**
@@ -68,10 +66,7 @@ public class XwebMessagesURIResolver implements URIResolver {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see javax.xml.transform.URIResolver#resolve(java.lang.String, java.lang.String)
-	 */
-	@SuppressWarnings("unchecked")
+	@Override
 	public Source resolve(String href, String base) throws TransformerException {
 		if ( !href.startsWith(XWEB_MESSAGES_URI_PREFIX) ) {
 			return null;
@@ -101,7 +96,7 @@ public class XwebMessagesURIResolver implements URIResolver {
 					return new JAXBSource(context, cache.get(key));
 				}
 	
-				XMessages xMsgs = objectFactory.createXMessages();
+				XwebMessages xMsgs = objectFactory.createXwebMessages();
 	
 				Enumeration<String> enumeration = messagesSource.getKeys(locale);
 				while (enumeration.hasMoreElements()) {

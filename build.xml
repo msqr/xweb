@@ -19,7 +19,8 @@
 
   $Id: build.xml,v 1.5 2007/10/02 09:03:52 matt Exp $   
 -->
-<project name="XWeb" default="dist">
+<project name="XWeb" default="dist" 
+	 xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property file="build.properties" />
 
@@ -29,7 +30,7 @@
 	<property name="dir.build" value="build/ant" />
 	<property name="dir.generated" value="${dir.build}/generated" />
 	<property name="dir.compile" value="${dir.build}/classes"/>
-	<property name="dir.dist" value="dist"/>
+	<property name="dir.dist" value="target"/>
 	<property name="dir.lib" value="lib"/>
 	
 	<property name="app.name" value="xweb" />
@@ -48,35 +49,52 @@
 		<format property="build.time" pattern="MM/dd/yyyy hh:mm aa z" />
 	</tstamp>
 	
-	<path id="jaxb.generate.path">
-		<fileset dir="${dir.lib}" includes="**/*.jar"/>
-	</path>
+	<!-- Ivy integration -->
+
+	<target name="ivy-init">
+		<taskdef resource="org/apache/ivy/ant/antlib.xml"
+			uri="antlib:org.apache.ivy.ant"
+			classpath="${dir.lib}/ivy-2.2.0.jar"/>
+	</target>
 	
-	<path id="compile.path">
-		<pathelement location="${dir.compile}"/>
-		<fileset dir="${dir.lib}" includes="**/*.jar"/>
-	</path>
+	<target name="lib-init" depends="ivy-init">
+		<ivy:settings file="${dir.lib}/ivysettings.xml"/>
+	</target>
+	
+	<target name="lib-resolve" depends="lib-init">
+		<echo message="[====&gt; Resolving dependencies (compile) &lt;====]"/>
+		<ivy:resolve file="${basedir}/ivy.xml" conf="compile"/>
+	</target>
 	
 	<target name="init">
 		<mkdir dir="${dir.build}" />
 		<mkdir dir="${dir.generated}" />
 	</target>
 	
-	<target name="generate.xweb" depends="init" 
+	<target name="generate.xweb" depends="init,lib-init" 
 		description="Generate JAXB Xweb objects from XML schema">
-		<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"
-			classpathref="jaxb.generate.path"/>
+		<ivy:resolve file="${basedir}/ivy.xml" conf="xjc"/>
+		<ivy:cachepath pathid="xjc.path" conf="xjc"/>
+		<taskdef name="xjc" classname="org.jvnet.jaxb2_commons.xjc.XJC2Task">
+			<classpath refid="xjc.path"/>
+		</taskdef>
 		<delete>
 			<fileset dir="${dir.generated}">
 				<include name="magoffin/matt/xweb/*.java"/>
 				<include name="magoffin/matt/xweb/impl/**/*.java"/>
 			</fileset>
 		</delete>
-		<xjc target="${dir.generated}" removeoldoutput="yes">
-			<schema  dir="${dir.schema}" includes="jaxb-web.xsd"/>
-			<arg line="-nv -extension"/>
+		<mkdir dir="${dir.generated}"/>
+		<xjc destdir="${dir.generated}" extension="true">
+			<binding dir="${dir.schema}">
+				<include name="**/*.xjb"/>
+			</binding>
+			<schema dir="${dir.schema}">
+			 	<include name="**/*.xsd"/>
+			</schema>
+			<classpath refid="xjc.path"/>
 			<produces dir="${dir.generated}/magoffin/matt/xweb" 
-				includes="*/.java impl/**/*.java"/>
+							includes="*/.java impl/**/*.java"/>
 		</xjc>
 	</target>
 	
@@ -99,7 +117,8 @@
 		<delete dir="${dir.generated}" />
 	</target>
 	
-	<target name="compile.xweb">
+	<target name="compile.xweb" depends="lib-resolve">
+		<ivy:cachepath pathid="compile.path" conf="compile"/>
 		<mkdir dir="${dir.compile}"/>
 		<delete>
 			<fileset dir="${dir.compile}">
@@ -113,27 +132,21 @@
 			deprecation="${compile.deprecation}" 
 			optimize="${compile.optimize}" 
 			nowarn="${compile.nowarn}"
-			target="1.5"
-			source="1.5">
+			target="1.6"
+			source="1.6">
 			<classpath refid="compile.path" />
 		</javac>
 	</target>
 	
 	<target name="xweb-jaxb-jar" description="Generate a JAXB only XWeb JAR"
-		depends="generate.xweb,compile.xweb,compile">
+		depends="clean,generate.xweb,compile.xweb">
 		<mkdir dir="${dir.dist}"/>
 		<jar destfile="${dir.lib}/xweb-jaxb.jar">
 			<fileset dir="${dir.compile}">
 				<include name="magoffin/matt/xweb/**"/>
-				<exclude name="magoffin/matt/xweb/util/**"/>
-			</fileset>
-			<fileset dir="${dir.source}">
-				<include name="magoffin/matt/xweb/**"/>
-				<exclude name="magoffin/matt/xweb/util/**"/>
 			</fileset>
 			<fileset dir="${dir.generated}">
 				<include name="magoffin/matt/xweb/**"/>
-				<exclude name="magoffin/matt/xweb/util/**"/>
 			</fileset>
 		</jar>
 	</target>

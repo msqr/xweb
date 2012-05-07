@@ -28,7 +28,6 @@ package magoffin.matt.xweb.util;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -48,9 +47,7 @@ public final class IgnoreValidation implements ValidationEventHandler
 	
 	private final Log logger = LogFactory.getLog(IgnoreValidation.class);
 	
-	/* (non-Javadoc)
-	 * @see javax.xml.bind.ValidationEventHandler#handleEvent(javax.xml.bind.ValidationEvent)
-	 */
+	@Override
 	public boolean handleEvent(ValidationEvent ve) {
 	    if ( logger.isDebugEnabled() ) {
 	        logger.debug("ValidationEvent: " +ve.getMessage());

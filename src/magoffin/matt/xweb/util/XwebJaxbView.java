@@ -28,7 +28,6 @@ package magoffin.matt.xweb.util;
 
 import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -37,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -54,10 +52,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-
 import magoffin.matt.xweb.ObjectFactory;
-import magoffin.matt.xweb.XData;
-import magoffin.matt.xweb.XParam;
+import magoffin.matt.xweb.Xweb;
 import magoffin.matt.xweb.XwebAuxillary;
 import magoffin.matt.xweb.XwebContext;
 import magoffin.matt.xweb.XwebError;
@@ -71,7 +67,6 @@ import magoffin.matt.xweb.XwebSession;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Element;
-
 import org.apache.commons.logging.Log;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -111,23 +106,23 @@ import org.w3c.dom.Document;
  * Useful for debugging.</dd>
  * 
  * <dt>debugMessageResource</dt>
- * <dd>Boolean value; if <em>true</em> then if <code>DEBUG</code> level
- * logging is enabled for this class then the entire <code>XwebMessages</code>
- * data object will be output with the <code>XData</code> XML object to the
- * log. If <em>false</em> then the XData XML output will not include it. Since
- * the <code>XwebMessages</code> object will contain a lot of data, it is
- * useful to not output that while debugging Xweb output.</dd>
+ * <dd>Boolean value; if <em>true</em> then if <code>DEBUG</code> level logging
+ * is enabled for this class then the entire <code>XwebMessages</code> data
+ * object will be output with the <code>Xweb</code> XML object to the log. If
+ * <em>false</em> then the Xweb XML output will not include it. Since the
+ * <code>XwebMessages</code> object will contain a lot of data, it is useful to
+ * not output that while debugging Xweb output.</dd>
  * 
  * <dt>marshallerProperties</dt>
  * <dd>A Map of properties to set on the JAXB Marshaller. This is useful for
  * passing such properties as
- * <code>com.sun.xml.bind.namespacePrefixMapper</code> property to output
- * valid XHTML.</dd>
+ * <code>com.sun.xml.bind.namespacePrefixMapper</code> property to output valid
+ * XHTML.</dd>
  * 
  * <dt>messagesSource</dt>
  * <dd>The <code>MessagesSource</code> object which will be turned into a
- * <code>XwebMessages</code> and added to the output XData XML object. This
- * makes internationalized messages available to the view XSLT.</dd>
+ * <code>XwebMessages</code> and added to the output Xweb XML object. This makes
+ * internationalized messages available to the view XSLT.</dd>
  * 
  * <dt>appSettings</dt>
  * <dd>A Map of application settings to set on the &lt;x-settings&gt; element
@@ -139,8 +134,8 @@ import org.w3c.dom.Document;
  * that the application does not need to generate this data for each request.</dd>
  * 
  * <dt>enableXmlSourceResponse</dt>
- * <dd>If <em>true</em> then if a URL parameter named "xml" is submitted with
- * a value of "true" then the original XML source for the view will be returned,
+ * <dd>If <em>true</em> then if a URL parameter named "xml" is submitted with a
+ * value of "true" then the original XML source for the view will be returned,
  * rather than the transformed result. Defaults to <em>true</em>.</dd>
  * </dl>
  * 
@@ -220,13 +215,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		DOC_BUILDER_FACTORY.setValidating(true);
 	}
 
-	private Map<String, XwebMessages> msgMap = new HashMap<String, XwebMessages>();
-	private ObjectFactory objectFactory = new ObjectFactory();
+	private final Map<String, XwebMessages> msgMap = new HashMap<String, XwebMessages>();
+	private final ObjectFactory objectFactory = new ObjectFactory();
 	private List<XDataPostProcessor> postProcessors = null;
 
 	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(webHelper, "The webHelper property is required.");
 		synchronized ( JAXBCONTEXT_CACHE ) {
@@ -253,18 +249,11 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.context.support.WebApplicationObjectSupport#isContextRequired()
-	 */
 	@Override
 	protected boolean isContextRequired() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.view.xslt.AbstractXsltView#setStylesheetLocation(org.springframework.core.io.Resource)
-	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setStylesheetLocation(Resource stylesheetLocation) {
 		super.setStylesheetLocation(stylesheetLocation);
@@ -274,10 +263,10 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 
 		// look for XDataPostProcessor
 		Map<String, XDataPostProcessor> postProcessorsMap = BeanFactoryUtils
-				.beansOfTypeIncludingAncestors(getApplicationContext(),
-						XDataPostProcessor.class, false, false);
+				.beansOfTypeIncludingAncestors(getApplicationContext(), XDataPostProcessor.class, false,
+						false);
 		List<XDataPostProcessor> postProcessorList = new LinkedList<XDataPostProcessor>();
-		for (XDataPostProcessor processor : postProcessorsMap.values()) {
+		for ( XDataPostProcessor processor : postProcessorsMap.values() ) {
 			if (processor.supportsView(getBeanName())) {
 				postProcessorList.add(processor);
 			}
@@ -335,12 +324,16 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	/**
 	 * Process the result model object.
 	 * 
-	 * @param xData  the current XData
-	 * @param model  the model Map
-	 * @param modelKey  the model object key
-	 * @throws JAXBException if a JAXB error occurs
+	 * @param xData
+	 *        the current Xweb
+	 * @param model
+	 *        the model Map
+	 * @param modelKey
+	 *        the model object key
+	 * @throws JAXBException
+	 *         if a JAXB error occurs
 	 */
-	protected void processModelObject(XData xData, Map<String, ?> model, String modelKey)
+	protected void processModelObject(Xweb xData, Map<String, ?> model, String modelKey)
 			throws JAXBException {
 		Object o = model.get(modelKey);
 		if (o != null) {
@@ -357,7 +350,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 			logger.debug("No XML model object found at '" + modelKey + "'");
 		}
 		if (xData.getXModel() == null) {
-			XParam noModelParam = objectFactory.createXParam();
+			XwebParameter noModelParam = objectFactory.createXwebParameter();
 			noModelParam.setKey("no.model");
 			noModelParam.setValue("no model");
 			XwebModel webModel = this.objectFactory.createXwebModel();
@@ -378,14 +371,17 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	}
 
 	/**
-	 * Process the request and add request data to the XData.
+	 * Process the request and add request data to the Xweb.
 	 * 
-	 * @param request the current request
-	 * @param xData the current XData
-	 * @throws JAXBException  if a JAXB error occurs
+	 * @param request
+	 *        the current request
+	 * @param xData
+	 *        the current Xweb
+	 * @throws JAXBException
+	 *         if a JAXB error occurs
 	 */
 	@SuppressWarnings( { "unchecked", "rawtypes" })
-	protected void processRequestData(HttpServletRequest request, XData xData)
+	protected void processRequestData(HttpServletRequest request, Xweb xData)
 			throws JAXBException {
 		// set up request (required)
 		XwebParameters xRequest = objectFactory.createXwebParameters();
@@ -430,16 +426,23 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	/**
 	 * Process any global messages.
 	 * 
-	 * @param request  the current request
-	 * @param xData the current XData
-	 * @param model the model Map
-	 * @param rootName the root name
-	 * @param modelKey the model object key
-	 * @param locale the current locale
-	 * @throws JAXBException if a JAXB error occurs
+	 * @param request
+	 *        the current request
+	 * @param xData
+	 *        the current Xweb
+	 * @param model
+	 *        the model Map
+	 * @param rootName
+	 *        the root name
+	 * @param modelKey
+	 *        the model object key
+	 * @param locale
+	 *        the current locale
+	 * @throws JAXBException
+	 *         if a JAXB error occurs
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void processMessages(HttpServletRequest request, XData xData, Map model,
+	@SuppressWarnings("rawtypes")
+	protected void processMessages(HttpServletRequest request, Xweb xData, Map model,
 			String rootName, String modelKey, Locale locale) throws JAXBException {
 		
 		Object alert = model.get(XwebConstants.ALERT_MESSAGES_OBJECT);
@@ -472,11 +475,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	/**
 	 * Set up the messages source messages as an XwebMessages instance.
 	 * 
-	 * @param xData the XData to add the messages to
-	 * @param locale the current locale
-	 * @throws JAXBException if an error occurs
+	 * @param xData
+	 *        the Xweb to add the messages to
+	 * @param locale
+	 *        the current locale
+	 * @throws JAXBException
+	 *         if an error occurs
 	 */
-	protected void processMessagesSource(XData xData, Locale locale) 
+	protected void processMessagesSource(Xweb xData, Locale locale)
 	throws JAXBException {
 		// set up message resources
 		if (messagesSource != null && includeMessages) {
@@ -486,18 +492,25 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	}
 
 	/**
-	 * Process any errors from this request and add to XData.
+	 * Process any errors from this request and add to Xweb.
 	 * 
-	 * @param request the current request
-	 * @param xData the current XData
-	 * @param model the model Map
-	 * @param rootName the root name
-	 * @param modelKey the model object key
-	 * @param locale the current locale
-	 * @throws JAXBException if a JAXB error occurs
+	 * @param request
+	 *        the current request
+	 * @param xData
+	 *        the current Xweb
+	 * @param model
+	 *        the model Map
+	 * @param rootName
+	 *        the root name
+	 * @param modelKey
+	 *        the model object key
+	 * @param locale
+	 *        the current locale
+	 * @throws JAXBException
+	 *         if a JAXB error occurs
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void processErrors(HttpServletRequest request, XData xData,
+	@SuppressWarnings("rawtypes")
+	protected void processErrors(HttpServletRequest request, Xweb xData,
 			Map model, String rootName, String modelKey, Locale locale)
 			throws JAXBException {
 		// insert errors, if any
@@ -545,10 +558,8 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 	}
 
-	@SuppressWarnings( { "unchecked" })
-	private void handleMessage(XwebErrors xErrors, Locale locale,
-			MessageSourceAccessor msgs, MessageSourceResolvable obj)
-			throws JAXBException {
+	private void handleMessage(XwebErrors xErrors, Locale locale, MessageSourceAccessor msgs,
+			MessageSourceResolvable obj) {
 		XwebError xError = objectFactory.createXwebError();
 		if (logger.isTraceEnabled()) {
 			logger.trace("Got error: " + obj);
@@ -594,11 +605,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 * and using the Node returned from this implementation.
 	 * </p>
 	 * 
-	 * @param request the request
-	 * @param xData the XData object to populate
-	 * @throws JAXBException if a JAXB error occurs
+	 * @param request
+	 *        the request
+	 * @param xData
+	 *        the Xweb object to populate
+	 * @throws JAXBException
+	 *         if a JAXB error occurs
 	 */
-	protected void setupContext(HttpServletRequest request, XData xData)
+	protected void setupContext(HttpServletRequest request, Xweb xData)
 			throws JAXBException {
 		XwebContext context = objectFactory.createXwebContext();
 		xData.setXContext(context);
@@ -610,9 +624,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		context.setPath(request.getServletPath());
 	}
 
-	@SuppressWarnings("unchecked")
-	private XwebMessages getMessages(Locale locale, MessagesSource msgSrc)
-			throws JAXBException {
+	private XwebMessages getMessages(Locale locale, MessagesSource msgSrc) {
 		String key = locale.toString();
 		if (msgMap.containsKey(key)) {
 			return msgMap.get(key);
@@ -647,7 +659,6 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 	}
 
-	@SuppressWarnings( { "unchecked" })
 	private XwebParameters getAppSettings() {
 		if (appSettingsCache != null) {
 			try {
@@ -674,15 +685,11 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 
 			if (appSettingsCache != null) {
 				Element cachedElement = new Element("app.settings",
-						(Serializable) result);
+						result);
 				appSettingsCache.put(cachedElement);
 			}
 
 			return result;
-		} catch (JAXBException e) {
-			throw new RuntimeException(
-					"Unable to create XwebParameters instance for app settings",
-					e);
 		} catch (ClassCastException e) {
 			throw new RuntimeException(
 					"XwebParameters cannot be cast to Serializable", e);
@@ -690,19 +697,23 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	}
 
 	/**
-	 * Build the output XData view object.
+	 * Build the output Xweb view object.
 	 * 
-	 * @param model the model
-	 * @param rootName the root model name
-	 * @param request the current request
-	 * @return the XData
-	 * @throws Exception if an error occurs
+	 * @param model
+	 *        the model
+	 * @param rootName
+	 *        the root model name
+	 * @param request
+	 *        the current request
+	 * @return the Xweb
+	 * @throws Exception
+	 *         if an error occurs
 	 */
 	@SuppressWarnings( { "unchecked", "rawtypes" })
-	protected XData buildXweb(Map model, String rootName,
+	protected Xweb buildXweb(Map model, String rootName,
 			HttpServletRequest request) throws Exception {
 		// create Xweb data container now
-		XData xData = objectFactory.createXData();
+		Xweb xData = objectFactory.createXweb();
 
 		String modelKey = model.containsKey(XwebConstants.DEFALUT_MODEL_OBJECT) ? XwebConstants.DEFALUT_MODEL_OBJECT
 				: rootName;
@@ -737,14 +748,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 
 		if (this.postProcessors != null) {
-			for (XDataPostProcessor processor : this.postProcessors) {
+			for ( XDataPostProcessor processor : this.postProcessors ) {
 				processor.process(xData, request);
 			}
 		}
-		// postProcessXData(model, rootName, request, xData);
+		// postProcessXweb(model, rootName, request, xData);
 
 		if (!debugMessageResource) {
-			debugXData(xData);
+			debugXweb(xData);
 		}
 
 		// add add AppContext if available
@@ -763,21 +774,24 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		processMessagesSource(xData, locale);
 
 		if (debugMessageResource) {
-			debugXData(xData);
+			debugXweb(xData);
 		}
 
 		return xData;
 	}
 
 	/**
-	 * Add XwebSession data to XData if available.
+	 * Add XwebSession data to Xweb if available.
 	 * 
-	 * @param request the request
-	 * @param xData the XData
-	 * @throws JAXBException if an error occurs
+	 * @param request
+	 *        the request
+	 * @param xData
+	 *        the Xweb
+	 * @throws JAXBException
+	 *         if an error occurs
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void processSession(HttpServletRequest request, XData xData) throws JAXBException {
+	@SuppressWarnings("rawtypes")
+	protected void processSession(HttpServletRequest request, Xweb xData) throws JAXBException {
 		if (request.getSession(false) != null) {
 			XwebSession xSession = objectFactory.createXwebSession();
 			xSession.setSessionId(request.getSession().getId());
@@ -794,7 +808,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 				if (val.getClass().getName().startsWith(jaxbContext)) {
 					xSession.getAny().add(val);
 				} else {
-					XParam xParam = objectFactory.createXParam();
+					XwebParameter xParam = objectFactory.createXwebParameter();
 					xParam.setKey(key);
 					xParam.setValue(val.toString());
 					xSession.getAny().add(xParam);
@@ -804,15 +818,19 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	}
 
 	/**
-	 * Add non-model objects to the XData.
+	 * Add non-model objects to the Xweb.
 	 * 
-	 * @param xData the XData
-	 * @param model the model
-	 * @param modelKey the model key
-	 * @throws JAXBException if an error occurs
+	 * @param xData
+	 *        the Xweb
+	 * @param model
+	 *        the model
+	 * @param modelKey
+	 *        the model key
+	 * @throws JAXBException
+	 *         if an error occurs
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void processNonModelObjects(XData xData, Map model, String modelKey) 
+	@SuppressWarnings("rawtypes")
+	protected void processNonModelObjects(Xweb xData, Map model, String modelKey)
 	throws JAXBException {
 		if (model.size() > 2) {
 			XwebAuxillary xAux = objectFactory.createXwebAuxillary();
@@ -838,7 +856,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 					xAux.getAny().add(auxObj);
 				} else {
 					// otherwise, create an XParam object to hold the data
-					XParam xParam = objectFactory.createXParam();
+					XwebParameter xParam = objectFactory.createXwebParameter();
 					xParam.setKey(key);
 					xParam.setValue(auxObj.toString());
 					xAux.getAny().add(xParam);
@@ -848,19 +866,20 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	}
 
 	/**
-	 * Log a debug log statement of the serialized version of an XData
-	 * instance to the class logger.
+	 * Log a debug log statement of the serialized version of an Xweb instance
+	 * to the class logger.
 	 * 
-	 * @param xData the XData to serialize to the logger
+	 * @param xData
+	 *        the Xweb to serialize to the logger
 	 */
-	protected void debugXData(XData xData) {
+	protected void debugXweb(Xweb xData) {
 		if (logger.isDebugEnabled()) {
 			try {
 				debugSource(new JAXBSource(getMarshaller(),xData), 
 						"---- START DOM -----\n",
 						"----- END DOM ------\n", logger);
 			} catch ( Exception e ) {
-				logger.warn("Unable to debug XData", e);
+				logger.warn("Unable to debug Xweb", e);
 			}
 		}
 	}
@@ -870,7 +889,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	protected Source createXsltSource(Map model, String root,
 			HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
-		XData xData = buildXweb(model, root, request);
+		Xweb xData = buildXweb(model, root, request);
 		return new JAXBSource(getMarshaller(), xData);
 	}
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivysettings>
+	<property name="ivy.shared.default.root"             value="${ivy.default.ivy.user.dir}/shared" override="false"/>
+	<property name="ivy.shared.default.ivy.pattern"      value="[organisation]/[module]/[revision]/[type]s/[artifact].[ext]" override="false"/>
+	<property name="ivy.shared.default.artifact.pattern" value="[organisation]/[module]/[revision]/[type]s/[artifact].[ext]" override="false"/>
+	<property name="ivy.local.default.root"              value="${ivy.default.ivy.user.dir}/local" override="false"/>
+	<property name="ivy.local.default.ivy.pattern"       value="[organisation]/[module]/[revision]/[type]s/[artifact].[ext]" override="false"/>
+	<property name="ivy.local.default.artifact.pattern"  value="[organisation]/[module]/[revision]/[type]s/[artifact].[ext]" override="false"/>
+	<property name="spring-repo.url" value="http://repository.springsource.com/ivy/bundles"/>
+	<property name="spring-repo.pattern" value="[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"/>
+	<settings defaultResolver="default"/>
+	<resolvers default="default">
+		<ibiblio name="public" m2compatible="true"/>
+		<ibiblio name="eclipse-link"
+			root="http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo/"
+			m2compatible="true"/>
+		<ibiblio name="jboss"
+			root="http://repository.jboss.org/nexus/content/groups/public-jboss"
+			m2compatible="true"/>
+		
+		<filesystem name="shared">
+			<ivy pattern="${ivy.shared.default.root}/${ivy.shared.default.ivy.pattern}" />
+			<artifact pattern="${ivy.shared.default.root}/${ivy.shared.default.artifact.pattern}" />
+		</filesystem>
+		<filesystem name="local">
+			<ivy pattern="${ivy.local.default.root}/${ivy.local.default.ivy.pattern}" />
+			<artifact pattern="${ivy.local.default.root}/${ivy.local.default.artifact.pattern}" />
+		</filesystem>
+		
+		<url name="spring-ebr-release">
+			<ivy pattern="${spring-repo.url}/release/${spring-repo.pattern}" />
+			<artifact pattern="${spring-repo.url}/release/${spring-repo.pattern}" />
+		</url>
+		<url name="spring-ebr-external">
+			<ivy pattern="${spring-repo.url}/external/${spring-repo.pattern}" />
+			<artifact pattern="${spring-repo.url}/external/${spring-repo.pattern}" />
+		</url> 
+		
+		<chain name="main" dual="true">
+			<resolver ref="shared"/>
+			<resolver ref="public"/>
+		</chain>
+		<chain name="default" returnFirst="true" checkmodified="true">
+			<resolver ref="local"/>
+			<resolver ref="main"/>
+			<resolver ref="eclipse-link"/>
+			<resolver ref="jboss"/>
+			<resolver ref="spring-ebr-release"/>
+			<resolver ref="spring-ebr-external"/>
+		</chain>
+	</resolvers>
+</ivysettings>

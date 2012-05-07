@@ -27,9 +27,7 @@
 package magoffin.matt.xweb.util;
 
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.util.StringUtils;
 
 /**
@@ -44,9 +42,7 @@ import org.springframework.util.StringUtils;
  */
 public class XhtmlContentTypeResolver implements ContentTypeResolver {
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.ContentTypeResolver#resolveContentType(javax.servlet.http.HttpServletRequest, java.util.Map)
-	 */
+	@Override
 	public String resolveContentType(HttpServletRequest request,
 			Map<String, ?> model) {
 		String accept = request.getHeader("Accept");
