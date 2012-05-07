@@ -19,7 +19,7 @@
 
   $Id: build.xml,v 1.5 2007/10/02 09:03:52 matt Exp $   
 -->
-<project name="XWeb" default="dist" 
+<project name="XWeb" default="jar" 
 	 xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property file="build.properties" />
@@ -208,10 +208,10 @@
 		</jar>
 	</target>
 
-	<target name="dist-xweb-jar" description="Generate a distribution XWeb JAR"
+	<target name="jar" description="Generate a distribution XWeb JAR"
 		depends="generate.xweb,compile.xweb,compile">
 		<mkdir dir="${dir.dist}"/>
-		<jar destfile="${dir.dist}/xweb.jar">
+		<jar destfile="${dir.dist}/xweb2.jar">
 			<fileset dir="${dir.compile}">
 				<include name="magoffin/matt/xweb/**"/>
 			</fileset>
@@ -223,9 +223,11 @@
 			</fileset>
 		</jar>
 	</target>
+	
+	<target name="dist-xweb-jar" depends="jar"/>
 
 	<target name="dist" description="Prepare the distribution JAR"
-		depends="dist-xweb-jar"/>
+		depends="jar"/>
 
 	<target name="help">
 		<echo>TODO</echo>
