@@ -37,6 +37,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -49,6 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Matt Magoffin (spamsqr@msqr.us)
  * @version $Revision: 1.2 $ $Date: 2006/08/26 06:11:34 $
  */
+@Repository
 public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	
 	private JdbcTemplate jdbcTemplate;
@@ -94,6 +98,7 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	public XwebParameter getParameter(String key) {
 		return jdbcTemplate.query(getByKeySql,
 				new Object[]{keyPrefix+key}, 
@@ -110,6 +115,7 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	public List<XwebParameter> getParameters() {
 		return jdbcTemplate.query(getAllSql, new RowMapper<XwebParameter>() {
 			@Override
@@ -120,12 +126,14 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	}
 
 	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public void removeParameter(String key) {
 		jdbcTemplate.update(deleteByKeySql, new Object[] {keyPrefix+key},
 				new int[] {Types.VARCHAR});
 	}
 
 	@Override
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public XwebParameter updateParameter(XwebParameter parameter) {
 		// see if exists...
 		XwebParameter storedParam = getParameter(parameter.getKey());
