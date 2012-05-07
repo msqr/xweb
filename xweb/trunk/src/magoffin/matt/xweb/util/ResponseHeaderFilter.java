@@ -28,7 +28,6 @@ package magoffin.matt.xweb.util;
 
 import java.io.IOException;
 import java.util.Enumeration;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -50,16 +49,12 @@ public class ResponseHeaderFilter implements Filter {
 
 	private FilterConfig fc;
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.Filter#destroy()
-	 */
+	@Override
 	public void destroy() {
 		this.fc = null;
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
-	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
@@ -73,9 +68,7 @@ public class ResponseHeaderFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
-	 */
+	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		this.fc = filterConfig;
 	}

@@ -29,7 +29,6 @@ package magoffin.matt.xweb.util;
 import java.io.File;
 import java.net.URL;
 import java.util.Locale;
-
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.BeanNameAware;
@@ -97,9 +96,6 @@ public class DefaultXsltViewResolver extends AbstractCachingViewResolver impleme
 	
 	private int order = Integer.MAX_VALUE;
     
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.view.AbstractCachingViewResolver#loadView(java.lang.String, java.util.Locale)
-	 */
 	@Override
 	protected View loadView(String viewName, Locale locale) throws Exception {
 		// see if file exists
@@ -118,7 +114,7 @@ public class DefaultXsltViewResolver extends AbstractCachingViewResolver impleme
 		}
 		
 		// got default, so create new view now
-		View view = (View)getApplicationContext().getBean(
+		View view = getApplicationContext().getBean(
 		        xsltViewTemplateName,View.class);
 		
 		// set the bean name to the view name, in place of the template name
@@ -133,9 +129,7 @@ public class DefaultXsltViewResolver extends AbstractCachingViewResolver impleme
 		return view;
     }
 
-	/**
-	 * @return Returns the order.
-	 */
+	@Override
 	public int getOrder() {
 		return order;
 	}

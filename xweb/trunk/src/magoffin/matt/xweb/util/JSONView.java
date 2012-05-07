@@ -27,22 +27,30 @@
 package magoffin.matt.xweb.util;
 
 import java.beans.PropertyDescriptor;
+import java.beans.PropertyEditor;
+import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.beans.PropertyEditorRegistrar;
 import org.springframework.web.servlet.view.AbstractView;
 
 /**
@@ -88,196 +96,337 @@ import org.springframework.web.servlet.view.AbstractView;
  * @version $Revision: 1.4 $ $Date: 2007/07/12 09:09:54 $
  */
 public class JSONView extends AbstractView {
-	
-	/** The default value for the <code>javaBeanIgnoreProperties</code> property. */
-	public static final String[] DEFAULT_JAVA_BEAN_IGNORE_PROPERTIES = new String[] {
-		"class",
-	};
-	
-	/** The default value for the <code>javaBeanTreatAsStringValues</code> property. */
-	public static final Class<?>[] DEFAULT_JAVA_BEAN_STRING_VALUES = new Class<?>[] {
-		Class.class,
-	};
-	
-	private int indentAmount = 0;
+
+	/**
+	 * The default value for the <code>javaBeanIgnoreProperties</code> property.
+	 */
+	public static final String[] DEFAULT_JAVA_BEAN_IGNORE_PROPERTIES = new String[] { "class", };
+	/**
+	 * The default value for the <code>javaBeanTreatAsStringValues</code>
+	 * property.
+	 */
+	public static final Class<?>[] DEFAULT_JAVA_BEAN_STRING_VALUES = new Class<?>[] { Class.class, };
+
+	private static final Class<?>[] DEFAULT_MODEL_OBJECT_IGNORE_TYPES = new Class<?>[] {};
+	private static final Pattern CHARSET_PATTERN = Pattern.compile("charset\\s*=\\s*([^\\s]+)",
+			Pattern.CASE_INSENSITIVE);
+
+	private Set<Class<?>> modelObjectIgnoreTypes = new LinkedHashSet<Class<?>>(
+			Arrays.asList(DEFAULT_MODEL_OBJECT_IGNORE_TYPES));
 	private Set<String> javaBeanIgnoreProperties = new LinkedHashSet<String>(
 			Arrays.asList(DEFAULT_JAVA_BEAN_IGNORE_PROPERTIES));
 	private Set<Class<?>> javaBeanTreatAsStringValues = new LinkedHashSet<Class<?>>(
 			Arrays.asList(DEFAULT_JAVA_BEAN_STRING_VALUES));
-	private boolean includeParentheses = true;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void render(@SuppressWarnings("rawtypes") Map model, HttpServletRequest request, 
-			HttpServletResponse response) throws Exception {
-		// This is a copy of AbstractView#render except a LinkedHashMap is used to 
-		// preserve key ordering.
+	/** The default content type: application/json;charset=UTF-8. */
+	public static final String JSON_CONTENT_TYPE = "application/json;charset=UTF-8";
+	
+	/** The default character encoding used: UTF-8. */
+	public static final String UTF8_CHAR_ENCODING = "UTF-8";
+	
+	private int indentAmount = 0;
+	private boolean includeParentheses = false;
+	private PropertyEditorRegistrar propertyEditorRegistrar = null;
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Rendering view with name '" + getBeanName() + "' with model " + model 
-					+ " and static attributes " + getStaticAttributes());
-		}
-
-		// consolidate static and dynamic model attributes
-		Map<String, Object> mergedModel = new LinkedHashMap<String, Object>(
-				getStaticAttributes().size() + (model != null ? model.size() : 0));
-		mergedModel.putAll(getStaticAttributes());
-		if (model != null) {
-			mergedModel.putAll(model);
-		}
-
-		// expose RequestContext?
-		if (getRequestContextAttribute() != null) {
-			mergedModel.put(getRequestContextAttribute(), 
-					createRequestContext(request, mergedModel));
-		}
-
-		renderMergedOutputModel(mergedModel, request, response);
+	/**
+	 * Default constructor.
+	 */
+	public JSONView() {
+		setContentType(JSON_CONTENT_TYPE);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	protected void renderMergedOutputModel(@SuppressWarnings("rawtypes") Map model, 
-			HttpServletRequest request,
+	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
-		JSONObject json = new JSONObject();
-		for ( String key : ((Map<String, Object>)model).keySet() ) {
-			Object val = model.get(key);
-			setJsonValue(json, key, val);
+		PropertyEditorRegistrar registrar = this.propertyEditorRegistrar;
+		@SuppressWarnings("unchecked")
+		Enumeration<String> attrEnum = request.getAttributeNames();
+		while ( attrEnum.hasMoreElements() ) {
+			String key = attrEnum.nextElement();
+			Object val = request.getAttribute(key);
+			if ( val instanceof PropertyEditorRegistrar ) {
+				registrar = (PropertyEditorRegistrar) val;
+				break;
+			}
 		}
+
+		response.setCharacterEncoding(UTF8_CHAR_ENCODING);
 		response.setContentType(getContentType());
 		Writer writer = response.getWriter();
 		if ( this.includeParentheses ) {
 			writer.write('(');
 		}
-		writer.write(indentAmount > 0 
-				? json.toString(indentAmount) 
-				: json.toString());
+		JsonGenerator json = new JsonFactory().createJsonGenerator(writer);
+		json.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		if ( indentAmount > 0 ) {
+			json.useDefaultPrettyPrinter();
+		}
+		json.writeStartObject();
+		for ( String key : model.keySet() ) {
+			Object val = model.get(key);
+			writeJsonValue(json, key, val, registrar);
+		}
+		json.writeEndObject();
+		json.close();
 		if ( this.includeParentheses ) {
 			writer.write(')');
 		}
 	}
 	
-	private void setJsonValue(JSONObject json, String key, Object val) throws JSONException {
-		if ( val instanceof Collection || val.getClass().isArray() ) {
-			Collection<?> col = val instanceof Collection
-				? (Collection<?>)val : Arrays.asList((Object[])val);
-			JSONArray arrayObj = new JSONArray();
-			for ( Object colObj : col ) {
-				setJsonValue(arrayObj, colObj);
+	private Collection<?> getPrimitiveCollection(Object array) {
+		int len = Array.getLength(array);
+		List<Object> result = new ArrayList<Object>(len);
+		for ( int i = 0; i < len; i++ ) {
+			result.add(Array.get(array, i));
+		}
+		return result;
+	}
+
+	private void writeJsonValue(JsonGenerator json, String key, Object val,
+			PropertyEditorRegistrar registrar) throws JsonGenerationException, IOException {
+		if ( val instanceof Collection<?> || (val != null && val.getClass().isArray()) ) {
+			Collection<?> col;
+			if ( val instanceof Collection<?> ) {
+				col = (Collection<?>) val;
+			} else if ( !val.getClass().getComponentType().isPrimitive() ) {
+				col = Arrays.asList((Object[]) val);
+			} else {
+				// damn you, primitives
+				col = getPrimitiveCollection(val);
 			}
-			json.put(key, arrayObj);
-		} else if ( val instanceof Number
-				|| val instanceof Boolean || val instanceof String 
-				|| val instanceof JSONObject || val instanceof JSONArray ) {
-			json.put(key, val);
+			if ( key != null ) {
+				json.writeFieldName(key);
+			}
+			json.writeStartArray();
+			for ( Object colObj : col ) {
+				writeJsonValue(json, null, colObj, registrar);
+			}
+
+			json.writeEndArray();
+		} else if ( val instanceof Map<?, ?> ) {
+			if ( key != null ) {
+				json.writeFieldName(key);
+			}
+			json.writeStartObject();
+			for ( Map.Entry<?, ?> me : ((Map<?, ?>) val).entrySet() ) {
+				Object propName = me.getKey();
+				if ( propName == null ) {
+					continue;
+				}
+				writeJsonValue(json, propName.toString(), me.getValue(), registrar);
+			}
+			json.writeEndObject();
+		} else if ( val instanceof Double ) {
+			if ( key == null ) {
+				json.writeNumber((Double) val);
+			} else {
+				json.writeNumberField(key, (Double) val);
+			}
+		} else if ( val instanceof Integer ) {
+			if ( key == null ) {
+				json.writeNumber((Integer) val);
+			} else {
+				json.writeNumberField(key, (Integer) val);
+			}
+		} else if ( val instanceof Short ) {
+			if ( key == null ) {
+				json.writeNumber(((Short) val).intValue());
+			} else {
+				json.writeNumberField(key, ((Short) val).intValue());
+			}
+		} else if ( val instanceof Float ) {
+			if ( key == null ) {
+				json.writeNumber((Float) val);
+			} else {
+				json.writeNumberField(key, (Float) val);
+			}
+		} else if ( val instanceof Long ) {
+			if ( key == null ) {
+				json.writeNumber((Long) val);
+			} else {
+				json.writeNumberField(key, (Long) val);
+			}
+		} else if ( val instanceof Boolean ) {
+			if ( key == null ) {
+				json.writeBoolean((Boolean) val);
+			} else {
+				json.writeBooleanField(key, (Boolean) val);
+			}
+		} else if ( val instanceof String ) {
+			if ( key == null ) {
+				json.writeString((String) val);
+			} else {
+				json.writeStringField(key, (String) val);
+			}
 		} else {
-			// create a JSONObject from bean properties
-			JSONObject beanObj = generateJavaBeanObject(val);
-			json.put(key, beanObj);
+			// create a JSON object from bean properties
+			generateJavaBeanObject(json, key, val, registrar);
 		}
 	}
 	
-	private JSONObject generateJavaBeanObject(Object bean) throws JSONException {
-		BeanWrapper wrapper = new BeanWrapperImpl(bean);
+	private void generateJavaBeanObject(JsonGenerator json, String key, Object bean,
+			PropertyEditorRegistrar registrar) throws JsonGenerationException, IOException {
+		if ( key != null ) {
+			json.writeFieldName(key);
+		}
+		if ( bean == null ) {
+			json.writeNull();
+			return;
+		}
+		BeanWrapper wrapper = getPropertyAccessor(bean, registrar);
 		PropertyDescriptor[] props = wrapper.getPropertyDescriptors();
-		JSONObject beanObj = new JSONObject();
+		json.writeStartObject();
 		for ( PropertyDescriptor prop : props ) {
 			String name = prop.getName();
-			if ( this.javaBeanIgnoreProperties != null 
-					&& this.javaBeanIgnoreProperties.contains(name) ) {
+			if ( this.getJavaBeanIgnoreProperties() != null
+					&& this.getJavaBeanIgnoreProperties().contains(name) ) {
 				continue;
 			}
 			if ( wrapper.isReadableProperty(name) ) {
 				Object propVal = wrapper.getPropertyValue(name);
 				if ( propVal != null ) {
-					if ( this.javaBeanTreatAsStringValues != null 
-							&& this.javaBeanTreatAsStringValues.contains(propVal.getClass())) {
+
+					// Spring does not apply PropertyEditors on read methods, so manually handle
+					PropertyEditor editor = wrapper.findCustomEditor(null, name);
+					if ( editor != null ) {
+						editor.setValue(propVal);
+						propVal = editor.getAsText();
+					}
+					if ( propVal instanceof Enum<?> || getJavaBeanTreatAsStringValues() != null
+							&& getJavaBeanTreatAsStringValues().contains(propVal.getClass()) ) {
 						propVal = propVal.toString();
 					}
-					setJsonValue(beanObj, name, propVal);
+					writeJsonValue(json, name, propVal, registrar);
 				}
 			}
 		}
-		return beanObj;
+		json.writeEndObject();
 	}
 	
-	private void setJsonValue(JSONArray json, Object val) throws JSONException {
-		if ( val instanceof Collection || val.getClass().isArray() ) {
-			Collection<?> col = val instanceof Collection
-				? (Collection<?>)val : Arrays.asList((Object[])val);
-			JSONArray arrayObj = new JSONArray();
-			for ( Object colObj : col ) {
-				setJsonValue(arrayObj, colObj);
-			}
-			json.put(arrayObj);
-		} else if ( val instanceof Number
-				|| val instanceof Boolean || val instanceof String 
-				|| val instanceof JSONObject || val instanceof JSONArray ) {
-			json.put(val);
-		} else {
-			// create a JSONObject from bean properties
-			JSONObject beanObj = generateJavaBeanObject(val);
-			json.put(beanObj);
+	private BeanWrapper getPropertyAccessor(Object obj, PropertyEditorRegistrar registrar) {
+		BeanWrapper bean = PropertyAccessorFactory.forBeanPropertyAccess(obj);
+		if ( registrar != null ) {
+			registrar.registerCustomEditors(bean);
 		}
+		return bean;
 	}
 
 	/**
-	 * @return the indentAmount
+	 * This method performs the same functions as
+	 * {@link AbstractView#render(Map, HttpServletRequest, HttpServletResponse)}
+	 * except that it uses a LinkedHashMap to preserve model order rather than a
+	 * HashMap.
 	 */
-	public int getIndentAmount() {
-		return indentAmount;
+	@Override
+	public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		if ( logger.isDebugEnabled() ) {
+			logger.debug("Rendering view with name '" + getBeanName() + "' with model " + model
+					+ " and static attributes " + getStaticAttributes());
+		}
+
+		// Consolidate static and dynamic model attributes.
+		Map<String, Object> mergedModel = new LinkedHashMap<String, Object>(getStaticAttributes().size()
+				+ (model != null ? model.size() : 0));
+		mergedModel.putAll(getStaticAttributes());
+		if ( model != null ) {
+			mergedModel.putAll(model);
+		}
+
+		// Expose RequestContext?
+		if ( getRequestContextAttribute() != null ) {
+			mergedModel.put(getRequestContextAttribute(),
+					createRequestContext(request, response, mergedModel));
+		}
+
+		// remove objects that should be ignored
+		if ( modelObjectIgnoreTypes != null && modelObjectIgnoreTypes.size() > 0 ) {
+			Iterator<Object> objects = mergedModel.values().iterator();
+			while ( objects.hasNext() ) {
+				Object o = objects.next();
+				if ( o == null ) {
+					objects.remove();
+					continue;
+				}
+				for ( Class<?> clazz : modelObjectIgnoreTypes ) {
+					if ( clazz.isAssignableFrom(o.getClass()) ) {
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("Ignoring model type [" + o.getClass() + ']');
+						}
+						objects.remove();
+						break;
+					}
+				}
+			}
+		}
+
+		prepareResponse(request, response);
+		renderMergedOutputModel(mergedModel, request, response);
 	}
-	
+
 	/**
-	 * @param indentAmount the indentAmount to set
+	 * Get the configured character encoding to use for the response.
+	 * 
+	 * <p>
+	 * This method will extract the character encoding specified in
+	 * {@link #getContentType()}, or default to {@code UTF-8} if none available.
+	 * </p>
+	 * 
+	 * @return character encoding name
 	 */
-	public void setIndentAmount(int indentAmount) {
-		this.indentAmount = indentAmount;
+	protected String getResponseCharacterEncoding() {
+		String charset = "UTF-8";
+		Matcher m = CHARSET_PATTERN.matcher(getContentType());
+		if ( m.find() ) {
+			charset = m.group(1);
+		}
+		return charset;
 	}
-	
-	/**
-	 * @return the javaBeanIgnoreProperties
-	 */
+
+	public Set<Class<?>> getModelObjectIgnoreTypes() {
+		return modelObjectIgnoreTypes;
+	}
+
+	public void setModelObjectIgnoreTypes(Set<Class<?>> modelObjectIgnoreTypes) {
+		this.modelObjectIgnoreTypes = modelObjectIgnoreTypes;
+	}
+
 	public Set<String> getJavaBeanIgnoreProperties() {
 		return javaBeanIgnoreProperties;
 	}
-	
-	/**
-	 * @param javaBeanIgnoreProperties the javaBeanIgnoreProperties to set
-	 */
+
 	public void setJavaBeanIgnoreProperties(Set<String> javaBeanIgnoreProperties) {
 		this.javaBeanIgnoreProperties = javaBeanIgnoreProperties;
 	}
-	
-	/**
-	 * @return the includeParentheses
-	 */
-	public boolean isIncludeParentheses() {
-		return includeParentheses;
-	}
-	
-	/**
-	 * @param includeParentheses the includeParentheses to set
-	 */
-	public void setIncludeParentheses(boolean includeParentheses) {
-		this.includeParentheses = includeParentheses;
-	}
-	
-	/**
-	 * @return the javaBeanTreatAsStringValues
-	 */
+
 	public Set<Class<?>> getJavaBeanTreatAsStringValues() {
 		return javaBeanTreatAsStringValues;
 	}
-	
-	/**
-	 * @param javaBeanTreatAsStringValues the javaBeanTreatAsStringValues to set
-	 */
-	public void setJavaBeanTreatAsStringValues(
-			Set<Class<?>> javaBeanTreatAsStringValues) {
+
+	public void setJavaBeanTreatAsStringValues(Set<Class<?>> javaBeanTreatAsStringValues) {
 		this.javaBeanTreatAsStringValues = javaBeanTreatAsStringValues;
+	}
+
+	public int getIndentAmount() {
+		return indentAmount;
+	}
+	public void setIndentAmount(int indentAmount) {
+		this.indentAmount = indentAmount;
+	}
+	public boolean isIncludeParentheses() {
+		return includeParentheses;
+	}
+	public void setIncludeParentheses(boolean includeParentheses) {
+		this.includeParentheses = includeParentheses;
+	}
+
+	public PropertyEditorRegistrar getPropertyEditorRegistrar() {
+		return propertyEditorRegistrar;
+	}
+
+	public void setPropertyEditorRegistrar(PropertyEditorRegistrar propertyEditorRegistrar) {
+		this.propertyEditorRegistrar = propertyEditorRegistrar;
 	}
 	
 }

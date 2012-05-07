@@ -34,7 +34,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
-
 import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
@@ -52,14 +51,12 @@ implements MessagesSource
 	private MessagesSource parent;
 
 	@Override
-	public void setBasenames(String[] basenames)  {
+	public void setBasenames(String... basenames) {
 		super.setBasenames(basenames);
 		this.basenames = basenames;
 	}
 	
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.MessagesSource#registerMessageResource(java.lang.String)
-	 */
+	@Override
 	public void registerMessageResource(String resource) {
 		String [] newBasenames = new String[basenames.length+1];
 		System.arraycopy(basenames, 0, newBasenames, 0, basenames.length);
@@ -68,9 +65,7 @@ implements MessagesSource
 		this.basenames = newBasenames;
 	}
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.MessagesSource#getKeys(java.util.Locale)
-	 */
+	@Override
 	public Enumeration<String> getKeys(Locale locale) {
 		if ( basenames.length == 1 && parent == null ) {
 			// handle simple case

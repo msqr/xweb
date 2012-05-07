@@ -30,9 +30,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
+import magoffin.matt.xweb.ObjectFactory;
+import magoffin.matt.xweb.XwebParameter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,9 +39,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import magoffin.matt.xweb.ObjectFactory;
-import magoffin.matt.xweb.XwebParameter;
 
 /**
  * Implementation of {@link XwebParamDao} using Spring's JdbcTemplate.
@@ -61,7 +57,7 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	private String tableName = "settings";
 	private String keyPrefix = "";
 	
-	private ObjectFactory objectFactory = new ObjectFactory();
+	private final ObjectFactory objectFactory = new ObjectFactory();
 	private String getByKeySql = "select " +keyColumnName +", " +valueColumnName
 		+" from " +tableName +" where " +keyColumnName +" = ?";
 	private String getAllSql = null;
@@ -72,6 +68,7 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	private String insertSql = "insert into " +tableName +" (" +keyColumnName
 		+", " +valueColumnName +") values (?, ?)";
 		
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(jdbcTemplate);
 		if ( !StringUtils.hasText(getAllSql) ) {
@@ -85,29 +82,24 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 	}
 	
 	private XwebParameter buildParameter(ResultSet rs) throws SQLException {
-		try {
-			XwebParameter param = objectFactory.createXwebParameter();
-			String key = rs.getString(keyColumnName);
-			if ( StringUtils.hasLength(keyPrefix) ) {
-				param.setKey(key.substring(keyPrefix.length()));
-			} else {
-				param.setKey(key);
-			}
-			param.setValue(rs.getString(valueColumnName));
-			return param;
-		} catch ( JAXBException e ) {
-			throw new RuntimeException(e);
+		XwebParameter param = objectFactory.createXwebParameter();
+		String key = rs.getString(keyColumnName);
+		if ( StringUtils.hasLength(keyPrefix) ) {
+			param.setKey(key.substring(keyPrefix.length()));
+		} else {
+			param.setKey(key);
 		}
+		param.setValue(rs.getString(valueColumnName));
+		return param;
 	}
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.XwebParamDao#getParameter(java.lang.String)
-	 */
+	@Override
 	public XwebParameter getParameter(String key) {
-		return (XwebParameter)jdbcTemplate.query(getByKeySql, 
+		return jdbcTemplate.query(getByKeySql,
 				new Object[]{keyPrefix+key}, 
-				new ResultSetExtractor() {
-					public Object extractData(ResultSet rs) 
+				new ResultSetExtractor<XwebParameter>() {
+					@Override
+					public XwebParameter extractData(ResultSet rs)
 					throws SQLException, DataAccessException {
 						if ( !rs.next() ) {
 							return null;
@@ -117,29 +109,23 @@ public class XwebJdbcParamDao implements XwebParamDao, InitializingBean {
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.XwebParamDao#getParameters()
-	 */
-	@SuppressWarnings("unchecked")
+	@Override
 	public List<XwebParameter> getParameters() {
-		return jdbcTemplate.query(getAllSql, new RowMapper() {
-			public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		return jdbcTemplate.query(getAllSql, new RowMapper<XwebParameter>() {
+			@Override
+			public XwebParameter mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return buildParameter(rs);
 			}
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.XwebParamDao#removeParameter(java.lang.String)
-	 */
+	@Override
 	public void removeParameter(String key) {
 		jdbcTemplate.update(deleteByKeySql, new Object[] {keyPrefix+key},
 				new int[] {Types.VARCHAR});
 	}
 
-	/* (non-Javadoc)
-	 * @see magoffin.matt.xweb.util.XwebParamDao#updateParameter(magoffin.matt.xweb.XwebParameter)
-	 */
+	@Override
 	public XwebParameter updateParameter(XwebParameter parameter) {
 		// see if exists...
 		XwebParameter storedParam = getParameter(parameter.getKey());
