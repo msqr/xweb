@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.util.JAXBSource;
@@ -73,7 +74,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -219,12 +219,8 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	private final ObjectFactory objectFactory = new ObjectFactory();
 	private List<XDataPostProcessor> postProcessors = null;
 
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(webHelper, "The webHelper property is required.");
 		synchronized ( JAXBCONTEXT_CACHE ) {
 			if (!JAXBCONTEXT_CACHE.containsKey(this.jaxbContext)) {
 				String myContext = XWEB_JAXB_CONTEXT + ":" + jaxbContext;
@@ -337,7 +333,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 			throws JAXBException {
 		Object o = model.get(modelKey);
 		if (o != null) {
-			if (o.getClass().getName().startsWith(jaxbContext)) {
+			if ( o instanceof JAXBElement<?> ) {
 				XwebModel webModel = this.objectFactory.createXwebModel();
 				webModel.setAny(o);
 				xData.setXModel(webModel);
@@ -446,7 +442,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 			String rootName, String modelKey, Locale locale) throws JAXBException {
 		
 		Object alert = model.get(XwebConstants.ALERT_MESSAGES_OBJECT);
-		if ( alert == null ) {
+		if ( alert == null && webHelper != null ) {
 			alert = webHelper.getSavedMessage(request);
 			if ( alert != null ) {
 				webHelper.clearSavedMessage(request);
@@ -759,15 +755,16 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		}
 
 		// add add AppContext if available
-		AppContextSupport appCtxSupport = webHelper
-				.getAppContextSupport(request);
-		if (appCtxSupport != null) {
-			XwebAuxillary xAux = xData.getXAuxillary();
-			if (xAux == null) {
-				xAux = objectFactory.createXwebAuxillary();
-				xData.setXAuxillary(xAux);
+		if ( webHelper != null ) {
+			AppContextSupport appCtxSupport = webHelper.getAppContextSupport(request);
+			if ( appCtxSupport != null ) {
+				XwebAuxillary xAux = xData.getXAuxillary();
+				if ( xAux == null ) {
+					xAux = objectFactory.createXwebAuxillary();
+					xData.setXAuxillary(xAux);
+				}
+				xAux.getAny().add(appCtxSupport.getAppContext());
 			}
-			xAux.getAny().add(appCtxSupport.getAppContext());
 		}
 
 		// set up message resources
@@ -875,7 +872,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	protected void debugXweb(Xweb xData) {
 		if (logger.isDebugEnabled()) {
 			try {
-				debugSource(new JAXBSource(getMarshaller(),xData), 
+				debugSource(new JAXBSource(getMarshaller(), objectFactory.createXData(xData)),
 						"---- START DOM -----\n",
 						"----- END DOM ------\n", logger);
 			} catch ( Exception e ) {
@@ -890,7 +887,7 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 			HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
 		Xweb xData = buildXweb(model, root, request);
-		return new JAXBSource(getMarshaller(), xData);
+		return new JAXBSource(getMarshaller(), objectFactory.createXData(xData));
 	}
 
 	/**
