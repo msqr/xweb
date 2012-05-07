@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+	targetNamespace="http://msqr.us/xsd/jaxb-web/test"
+	xml:lang="EN"
+	jaxb:extensionBindingPrefixes="xjc"
+	jaxb:version="1.0"
+	xmlns:xwebtest="http://msqr.us/xsd/jaxb-web/test"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified">
+	
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:globalBindings>
+				<xjc:serializable uid="201205071"/>
+			</jaxb:globalBindings>
+			<jaxb:schemaBindings>
+				<jaxb:package name="magoffin.matt.xwebtest"/>
+			</jaxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+	
+	<xs:element name="test" type="xwebtest:xweb-test"/>
+	
+	<xs:complexType name="xweb-test">
+		<xs:sequence>
+			<xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="params">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="param" type="xwebtest:test-param" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="test-param">
+		<xs:sequence>
+			<xs:element name="value" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="key" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+</xs:schema>
