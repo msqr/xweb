@@ -28,13 +28,14 @@ package magoffin.matt.xweb.util;
 
 import java.util.List;
 import java.util.Properties;
-
 import magoffin.matt.xweb.XwebParameter;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.dao.DataAccessException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,16 +48,23 @@ import org.springframework.util.StringUtils;
 public class XwebParamPropertiesPlaceholderConfigurer extends
 		PropertyPlaceholderConfigurer {
 
+	@Autowired
 	private XwebParamDao settingDao;
 	
-	private final Logger log = Logger.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Override
 	protected void processProperties(
 			ConfigurableListableBeanFactory beanFactoryToProcess,
 			final Properties props) throws BeansException {
 		
-		List<XwebParameter> settings = settingDao.getParameters();
+		List<XwebParameter> settings;
+		try {
+			settings = settingDao.getParameters();
+		} catch ( DataAccessException e ) {
+			log.warn("Unable to process property placeholder XwebParameters: {}", e.getMessage());
+			return;
+		}
 		for ( XwebParameter param : settings ) {
 			String key = param.getKey();
 			if ( StringUtils.hasText(param.getValue())) {
