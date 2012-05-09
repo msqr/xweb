@@ -139,10 +139,11 @@ import org.w3c.dom.Document;
  * rather than the transformed result. Defaults to <em>true</em>.</dd>
  * </dl>
  * 
+ * @deprecated see {@link XwebJaxbXsltView} for a replacement
  * @author Matt Magoffin (spamsqr@msqr.us)
  * @version $Revision: 1.8 $ $Date: 2007/10/02 09:03:52 $
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 
 	/**
