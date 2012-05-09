@@ -202,6 +202,9 @@ public class XwebJaxbXsltView extends XsltView implements InitializingBean {
 		} else {
 			xslt = getServletContext().getResource(getUrl());
 		}
+		if ( xslt == null ) {
+			return false;
+		}
 		try {
 			if ( !new UrlResource(xslt).getFile().exists() ) {
 				return false;
