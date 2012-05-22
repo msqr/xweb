@@ -61,41 +61,38 @@ public class XwebParamPropertiesPlaceholderConfigurer extends
 		List<XwebParameter> settings;
 		try {
 			settings = settingDao.getParameters();
+			for ( XwebParameter param : settings ) {
+				String key = param.getKey();
+				if ( StringUtils.hasText(param.getValue()) ) {
+					String value = param.getValue();
+					if ( log.isDebugEnabled() ) {
+						if ( props.containsKey(key) ) {
+							if ( value.equals(props.getProperty(key)) ) {
+								log.debug("Read property [" + key + "] from DB; value [" + value + "]");
+							} else {
+								log.debug("Overriding property [" + key + "] value ["
+										+ props.getProperty(key) + "] with DB value [" + value + "]");
+							}
+						} else {
+							log.debug("Adding DB property [" + key + "]: " + value);
+						}
+					} else if ( log.isInfoEnabled() ) {
+						// don't log values at INFO level, because contains passwords and such
+						if ( props.containsKey(key) ) {
+							if ( value.equals(props.getProperty(key)) ) {
+								log.info("Read property [" + key + "] from DB.");
+							} else {
+								log.info("Overriding property [" + key + "] with DB value.");
+							}
+						} else {
+							log.info("Adding DB property [" + key + "]");
+						}
+					}
+					props.put(key, value);
+				}
+			}
 		} catch ( DataAccessException e ) {
 			log.warn("Unable to process property placeholder XwebParameters: {}", e.getMessage());
-			return;
-		}
-		for ( XwebParameter param : settings ) {
-			String key = param.getKey();
-			if ( StringUtils.hasText(param.getValue())) {
-				String value = param.getValue();
-				if ( log.isDebugEnabled() ) {
-					if ( props.containsKey(key) ) {
-						if ( value.equals(props.getProperty(key)) ) {
-							log.debug("Read property [" +key +"] from DB; value ["
-									+value +"]");
-						} else {
-							log.debug("Overriding property [" +key +"] value [" 
-									+props.getProperty(key) +"] with DB value ["
-									+value +"]");
-						}
-					} else {
-						log.debug("Adding DB property [" +key +"]: " +value);
-					}
-				} else if ( log.isInfoEnabled() ) {
-					// don't log values at INFO level, because contains passwords and such
-					if ( props.containsKey(key) ) {
-						if ( value.equals(props.getProperty(key)) ) {
-							log.info("Read property [" +key +"] from DB.");
-						} else {
-							log.info("Overriding property [" +key +"] with DB value.");
-						}
-					} else {
-						log.info("Adding DB property [" +key +"]");
-					}
-				}
-				props.put(key,value);
-			}
 		}
 		
 		super.processProperties(beanFactoryToProcess, props);
