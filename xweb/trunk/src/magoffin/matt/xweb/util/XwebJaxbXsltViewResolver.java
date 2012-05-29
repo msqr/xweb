@@ -26,11 +26,14 @@
 
 package magoffin.matt.xweb.util;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import net.sf.ehcache.Ehcache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
+import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.xslt.XsltViewResolver;
 
@@ -113,8 +116,24 @@ public class XwebJaxbXsltViewResolver extends XsltViewResolver implements Ordere
 		view.setIgnoreMarshallErrors(ignoreMarshallErrors);
 		view.setUseAbsolutePaths(useAbsolutePaths);
 		view.setDebugMessageResource(debugMessageResource);
-		// TODO: need to call afterPropertiesSet()?
 		return view;
+	}
+
+	@Override
+	protected View loadView(String viewName, Locale locale) throws Exception {
+		try {
+			return super.loadView(viewName, locale);
+		} catch ( RuntimeException e ) {
+			Throwable root = e;
+			while ( root.getCause() != null ) {
+				root = root.getCause();
+			}
+			if ( root instanceof FileNotFoundException ) {
+				// ignore this, and simply return null (happens when cacheTemplates == true)
+				return null;
+			}
+			throw e;
+		}
 	}
 
 	public String getJaxbContext() {
