@@ -30,6 +30,7 @@ import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,7 +38,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -54,7 +54,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-
 import magoffin.matt.xweb.ObjectFactory;
 import magoffin.matt.xweb.XData;
 import magoffin.matt.xweb.XParam;
@@ -71,7 +70,6 @@ import magoffin.matt.xweb.XwebSession;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Element;
-
 import org.apache.commons.logging.Log;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -205,6 +203,9 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	private boolean includeMessages = true;
 	private boolean enableXmlSourceResponse = true;
 
+	/** A Map of properties to use with the XSLT transformer. */
+	private Map<String, String> transformerOutputProperties = defaultTransformerOutputProperties();
+
 	/** The JAXP TransformerFactory to use for getting transformers (used for debugging DOM). */
 	private TransformerFactory transformerFactory = null;
 
@@ -220,8 +221,12 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 		DOC_BUILDER_FACTORY.setValidating(true);
 	}
 
-	private Map<String, XwebMessages> msgMap = new HashMap<String, XwebMessages>();
-	private ObjectFactory objectFactory = new ObjectFactory();
+	private static Map<String, String> defaultTransformerOutputProperties() {
+		return Collections.singletonMap("{http://xml.apache.org/xalan}indent-amount", "2");
+	}
+
+	private final Map<String, XwebMessages> msgMap = new HashMap<String, XwebMessages>();
+	private final ObjectFactory objectFactory = new ObjectFactory();
 	private List<XDataPostProcessor> postProcessors = null;
 
 	/* (non-Javadoc)
@@ -908,7 +913,11 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 				transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
 			}
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
+			if ( transformerOutputProperties != null ) {
+				for ( Map.Entry<String, String> me : transformerOutputProperties.entrySet() ) {
+					transformer.setOutputProperty(me.getKey(), me.getValue());
+				}
+			}
 			transformer.transform(source, result);
 		} catch ( Exception e ) {
 			throw new RuntimeException("Unable to transform Document to XML String", e);
@@ -1111,6 +1120,14 @@ public class XwebJaxbView extends AbstractXsltView implements InitializingBean {
 	 */
 	public void setIncludeMessages(boolean includeMessages) {
 		this.includeMessages = includeMessages;
+	}
+
+	public Map<String, String> getTransformerOutputProperties() {
+		return transformerOutputProperties;
+	}
+
+	public void setTransformerOutputProperties(Map<String, String> transformerOutputProperties) {
+		this.transformerOutputProperties = transformerOutputProperties;
 	}
 
 }
